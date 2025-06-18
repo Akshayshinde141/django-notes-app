@@ -1,0 +1,9 @@
+data/
+*.dblwr
+*.ibd
+*.pid
+*.sock
+__pycache__/
+*.pyc
+*.db
+.env
