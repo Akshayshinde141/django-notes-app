@@ -21,7 +21,7 @@ jobs:
         run: docker compose build
 
       - name: Start containers
-        run: docker compose run --rm django_count python manage.py check
+        run: docker compose run --rm django_cont python manage.py check
 
       - name: Stop containers
         run: docker compose down
