@@ -24,7 +24,7 @@ jobs:
         run: docker compose up -d
 
       - name: Run Django checks
-        run: docker compose exec -T django_cont python manage.py check
+        run: docker compose exec -T django python manage.py check
 
       - name: Stop containers
         run: docker compose down
