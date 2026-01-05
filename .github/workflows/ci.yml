@@ -20,8 +20,19 @@ jobs:
       - name: Build Docker images
         run: docker compose build
 
-      - name: Start containers
+      - name: Run django checks
         run: docker compose run --rm django_app python manage.py check
+
+      - name: Login to Docker Hub
+	uses: docker/login-action@v3
+	with:
+	  username: ${{secrets.DOCKERHUB_USERNAME }}
+	  password: ${{secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Django image
+	run:
+	  docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django-notes-app:${{ github.sha }} .
+	  docker push ${{ secrets.DOCKERHUB_USERNAME }}/django-notes-app:${{ github.sha }}
 
       - name: Stop containers
         run: docker compose down
