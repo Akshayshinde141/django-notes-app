@@ -1,13 +1,11 @@
-name: Django CI (Docker)
+name: Django CI/CD (Docker)
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +18,7 @@ jobs:
       - name: Build Docker images
         run: docker compose build
 
-      - name: Run django checks
+      - name: Run Django checks
         run: docker compose run --rm django_app python manage.py check
 
       - name: Login to Docker Hub
@@ -34,6 +32,24 @@ jobs:
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/django-notes-app:${{ github.sha }} .
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/django-notes-app:${{ github.sha }}
 
-
-      - name: Stop containers
+      - name: Stop local containers
         run: docker compose down
+
+
+  cd:
+    needs: ci
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/apps/django-notes-app
+            docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
+            export IMAGE_TAG=${{ github.sha }}
+            docker compose pull
+            docker compose up -d
